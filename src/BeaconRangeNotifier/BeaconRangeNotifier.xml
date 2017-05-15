@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<widget id="BeaconRangeNotifier.widget.BeaconRangeNotifier" needsEntityContext="false" offlineCapable="true" xmlns="http://www.mendix.com/widget/1.0/">
+<widget id="BeaconRangeNotifier.widget.BeaconRangeNotifier" needsEntityContext="true" offlineCapable="true" xmlns="http://www.mendix.com/widget/1.0/">
     <name>BeaconRangeNotifier</name>
     <description>Notifies the server if a beacon is within range</description>
     <icon>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</icon>
     <properties>
-        <property key="rangeString" type="string" required="true" defaultValue="3.0">
-            <caption>Range</caption>
-            <category>Behavior</category>
-            <description>Within what range should beacpons be detected? Meters</description>
+        <property key="beaconJsonAttr" type="attribute">
+            <caption>Beacon JSON attr</caption>
+            <category>Configuration</category>
+            <description>The beacon JSON attribute. It will contain the beacon data when the beacon data microflow is called.</description>
+            <attributeTypes>
+                <attributeType name="String" />
+            </attributeTypes>
+        </property>
+        <property key="beaconDataReceivedMF" type="microflow">
+            <caption>Beacon microflow</caption>
+            <category>Configuration</category>
+            <description>This microflow is called when beacon data is received.</description> 
+            <returnType type="Void"/>
         </property>
         <property key="endPoint" type="string" required="true" defaultValue="beacons">
             <caption>Endpoint</caption>
@@ -20,26 +29,26 @@
             <description>Interval in ms between scans</description>
         </property>
         <property key="beaconSet" type="object" isList="true" required="true">
-			<caption>Beacons</caption>
-			<category>Beacons</category>
-			<description></description>
-			<properties>
-				<property key="beaconUUID" type="string" required="true" defaultValue="B9407F30-F5F8-466E-AFF9-25556B57FE6D">
-					<caption>UUID</caption>
-					<category>Beacon</category>
-					<description></description>
-				</property>
-				<property key="beaconMajor" type="integer" required="true" defaultValue="00000">
-					<caption>Major</caption>
+            <caption>Beacons</caption>
+            <category>Beacons</category>
+            <description></description>
+            <properties>
+                <property key="beaconUUID" type="string" required="true" defaultValue="B9407F30-F5F8-466E-AFF9-25556B57FE6D">
+                    <caption>UUID</caption>
                     <category>Beacon</category>
-					<description></description>
-				</property>
-				<property key="beaconMinor" type="integer" required="true" defaultValue="00000">
-					<caption>Minor</caption>
+                    <description></description>
+                </property>
+                <property key="beaconMajor" type="integer" required="true" defaultValue="00000">
+                    <caption>Major</caption>
                     <category>Beacon</category>
-					<description></description>
-				</property>
-			</properties>
-		</property>
+                    <description></description>
+                </property>
+                <property key="beaconMinor" type="integer" required="true" defaultValue="00000">
+                    <caption>Minor</caption>
+                    <category>Beacon</category>
+                    <description></description>
+                </property>
+            </properties>
+        </property>
     </properties>
 </widget>

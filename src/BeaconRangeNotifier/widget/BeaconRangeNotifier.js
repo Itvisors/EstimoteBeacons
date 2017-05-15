@@ -1,41 +1,30 @@
+/*jslint browser:true, nomen:true, plusplus: true */
+/*global mx, mendix, require, console, device, EstimoteBeacons, define, module, logger, cordova */
 define([
     "dojo/_base/declare",
     "mxui/widget/_WidgetBase",
     "dojo/_base/lang"
-], function(declare, _WidgetBase, lang) {
+], function (declare, _WidgetBase, lang) {
     "use strict";
 
     return declare("BeaconRangeNotifier.widget.BeaconRangeNotifier", [ _WidgetBase ], {
 
         // Set in Modeler
-        rangeString: "3.0",
+        beaconJsonAttr: "",
+        beaconDataReceivedMF: "",
         scanInterval: 60000,
         endPoint: "beacons",
 
         // Internal values
-        _domain: "MxWorld",     // Stub value, isn't actually relevant, but needed for estimote
-        _range: null,
+        _domain: "ITvisors",     // Stub value, isn't actually relevant, but needed for estimote
         _endPointUrl: null,
-
-        _endDate: new Date(2016, 5, 8, 16, 0, 0), // Wed Jun 08 2016 16:00:00 GMT+0200 (CEST)
 
         _ranging: false,
         _pauseID: null,
         _resumeID: null,
 
-        _shouldRun: function () {
-            return (new Date()) < this._endDate;
-        },
-
-        postCreate: function() {
+        postCreate: function () {
             logger.debug(this.id + ".postCreate");
-
-            if (!this._shouldRun()) {
-                logger.warn(this.id + ".postCreate: we're disabling this after the endDate " + this._endDate);
-                return;
-            }
-
-            this._range = 3.0; //parseFloat(this.rangeString);
 
             if (!window.cordova || !window.estimote || !window.EstimoteBeacons) {
                 logger.warn(this.id + ".postCreate: not in Phonegap, so BeaconRangeNotifier is disabled");
@@ -49,21 +38,21 @@ define([
 
             this._endPointUrl = mx.remoteUrl + this.endPoint;
 
-            if (device.platform === "Android"){
+            if (device.platform === "Android") {
                 var permissions = window.plugins.permissions;
-                if(permissions){
-                    permissions.requestPermission(function() {
+                if (permissions) {
+                    permissions.requestPermission(function () {
                         logger.debug("ACCESS_FINE_LOCATION permission accepted");
                         this.addBeaconMonitor();
                         setTimeout(lang.hitch(this, this.addBeaconScanner), 15000); // Timeout adding the scanner because we already added a monitor
-                    }.bind(this), function(e) {
+                    }.bind(this), function (e) {
                         console.error("Error requesting Error FINE_LOCATION", e);
                     }, permissions.ACCESS_FINE_LOCATION);
-                }else{
+                } else {
                     this.addBeaconMonitor();
                     setTimeout(lang.hitch(this, this.addBeaconScanner), 15000); // Timeout adding the scanner because we already added a monitor
                 }
-            }else{
+            } else {
                 this.addBeaconMonitor();
                 setTimeout(lang.hitch(this, this.addBeaconScanner), 15000); // Timeout adding the scanner because we already added a monitor
             }
@@ -85,7 +74,12 @@ define([
         },
 
         _onBeaconsReceivedInMonitoring: function (e) {
-            var timestamp = +(new Date());
+            var b,
+                beacon,
+                cachedBeacon,
+                found,
+                m,
+                timestamp = +(new Date());
 
             if (!window.monitoringScanBeacons) {
                 window.monitoringScanBeacons = {
@@ -95,11 +89,11 @@ define([
             window.monitoringScanBeacons.timestamp = timestamp;
 
             if (e && e.beacons && e.beacons.length) {
-                for (var b = 0; b < e.beacons.length; b++) {
-                    var found = false,
-                        beacon = e.beacons[b];
-                    for (var m = 0; m < window.monitoringScanBeacons.beacons.length; m++) {
-                        var cachedBeacon = window.monitoringScanBeacons.beacons[m];
+                for (b = 0; b < e.beacons.length; b++) {
+                    found = false;
+                    beacon = e.beacons[b];
+                    for (m = 0; m < window.monitoringScanBeacons.beacons.length; m++) {
+                        cachedBeacon = window.monitoringScanBeacons.beacons[m];
                         if (cachedBeacon.minor === beacon.minor && cachedBeacon.major === beacon.major) {
                             found = true;
                             cachedBeacon.distance = (beacon.distance < cachedBeacon.distance) ? beacon.distance : cachedBeacon.distance;
@@ -112,57 +106,48 @@ define([
             }
         },
 
-        _sendBeacon: function (info) {
-            if (!this._endPointUrl || !info) {
-                return;
-            }
-
-            if (!this._shouldRun()) {
-                logger.warn(this.id + "._sendBeacon: we're disabling this after the endDate " + this._endDate);
-                return;
-            }
-
-            logger.debug(this.id + "._sendBeacon: " + JSON.stringify(info));
-            var beaconId = info.major + "_" + info.minor,
-                url = this._endPointUrl + "?deviceId=" + info.device + "&beaconId=" + beaconId + "&distance=" + info.distance,
-                request = new XMLHttpRequest();
-
-            request.open("GET", url);
-
-            request.addEventListener("load", lang.hitch(this, function () {
-                logger.debug(this.id + "._sendBeacon " + beaconId + " complete");
-            }));
-            request.addEventListener("error", lang.hitch(this, function () {
-                logger.debug(this.id + "._sendBeacon " + beaconId + " error");
-            }));
-
-            request.send();
-        },
+//        _sendBeacon: function (info) {
+//            if (!this._endPointUrl || !info) {
+//                return;
+//            }
+//
+//            logger.debug(this.id + "._sendBeacon: " + JSON.stringify(info));
+//            var beaconId = info.major + "_" + info.minor,
+//                url = this._endPointUrl + "?deviceId=" + info.device + "&beaconId=" + beaconId + "&distance=" + info.distance,
+//                request = new XMLHttpRequest();
+//
+//            request.open("GET", url);
+//
+//            request.addEventListener("load", lang.hitch(this, function () {
+//                logger.debug(this.id + "._sendBeacon " + beaconId + " complete");
+//            }));
+//            request.addEventListener("error", lang.hitch(this, function () {
+//                logger.debug(this.id + "._sendBeacon " + beaconId + " error");
+//            }));
+//
+//            request.send();
+//        },
 
         _sendBeacons: function (monitor) {
             logger.debug(this.id + "._sendBeacons from " + (monitor ? "monitor" : "ranging"));
 
-            var timestamp = +(new Date());
-            var scannedBeacons = monitor ? window.monitoringScanBeacons : window.backgroundScanBeacons;
+            var beaconData,
+                timestamp = +(new Date()),
+                scannedBeacons = monitor ? window.monitoringScanBeacons : window.backgroundScanBeacons;
 
             if (scannedBeacons && scannedBeacons.beacons.length && (timestamp - scannedBeacons.timestamp < 15000)) { // Only send this if it is not more than 15 seconds old
-                var info = {
-                        distance: null,
-                        device: device.uuid,
-                        minor: null,
-                        major: null
+                beaconData = JSON.stringify(scannedBeacons);
+                this.mxcontext.getTrackObject().set(this.beaconJsonAttr, beaconData);
+                mx.data.action({
+                    params       : {
+                        applyto     : "selection",
+                        actionname  : this.beaconDataReceivedMF,
+                        guids       : [this.mxcontext.getTrackId()]
                     },
-                    beacons = lang.clone(scannedBeacons.beacons); // We clone this to make sure it doesn't change during our check
-
-                beacons.forEach(lang.hitch(this, function (beacon) {
-                        info.distance = beacon.distance;
-                        info.minor = beacon.minor;
-                        info.major = beacon.major;
-
-                    if (info.minor !== null && info.major !== null){
-                        this._sendBeacon(info);
-                    }
-                }));
+                    callback     : lang.hitch(this, this._getConfigurationCallback),
+                    error        : lang.hitch(this, this._errorCallback),
+                    onValidation : lang.hitch(this, this._errorCallback)
+                });
 
                 if (monitor) {
                     window.monitoringScanBeacons.beacons = [];
@@ -171,6 +156,11 @@ define([
             } else {
                 logger.debug(this.id + "._sendBeacons no beacons found, not sending any");
             }
+        },
+        
+        _errorCallback: function (error) {
+            console.error(this.id + "._errorCallback called");
+            console.dir(error);
         },
 
         rangeAndReport: function () {
@@ -207,24 +197,27 @@ define([
             console.log(errorMessage);
         },
 
+        /**
+        * Start beacon monitoring for the specified beacons.
+        */
         addBeaconMonitor: function () {
             logger.debug(this.id + ".addBeaconMonitor");
 
             // Request authorisation.
-    		EstimoteBeacons.requestAlwaysAuthorization();
+            EstimoteBeacons.requestAlwaysAuthorization();
 
             var i = 0;
 
             this.beaconSet.forEach(lang.hitch(this, function (beacon) {
-        		var monitor = EstimoteBeacons.startMonitoringForRegion(
+                var monitor = EstimoteBeacons.startMonitoringForRegion(
                     {
                         identifier: "region" + i,
                         uuid: beacon.beaconUUID,
                         minor: beacon.beaconMinor,
                         major: beacon.beaconMajor
                     },
-        			lang.hitch(this, this.onMonitor),
-        			lang.hitch(this, this.onError)
+                    lang.hitch(this, this.onMonitor),
+                    lang.hitch(this, this.onError)
                 );
 
                 logger.debug(this.id + ".addBeaconMonitor region" + i + " result = " + monitor + " for " + beacon.beaconUUID + ":" + beacon.beaconMajor + ":" + beacon.beaconMinor);
@@ -238,6 +231,9 @@ define([
             // );
         },
 
+        /**
+        * Start beacon monitoring for the specified beacons.
+        */
         addBeaconScanner: function () {
             logger.debug(this.id + ".addBeaconScanner");
             this._ranging = true;
@@ -276,14 +272,14 @@ define([
             window.scannerID = setInterval(lang.hitch(this, this._sendBeacons), this.scanInterval);
         },
 
-        resize: function(box) {}, // stub, sometimes a widget will fail if it has no resize method
+        resize: function (box) {}, // stub, sometimes a widget will fail if it has no resize method
 
         uninitialize: function () {
             logger.debug(this.id + ".uninitialize");
             var i = 0;
             if (window.EstimoteBeacons) {
                 this.beaconSet.forEach(lang.hitch(this, function (beacon) {
-            		var monitor = EstimoteBeacons.stopMonitoringForRegion(
+                    var monitor = EstimoteBeacons.stopMonitoringForRegion(
                         {
                             identifier: "region" + i,
                             uuid: beacon.uuid,
