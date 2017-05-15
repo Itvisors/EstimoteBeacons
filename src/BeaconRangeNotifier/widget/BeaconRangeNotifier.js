@@ -144,7 +144,7 @@ define([
                         actionname  : this.beaconDataReceivedMF,
                         guids       : [this.mxcontext.getTrackId()]
                     },
-                    callback     : lang.hitch(this, this._getConfigurationCallback),
+                    callback     : lang.hitch(this, this._mfCallback),
                     error        : lang.hitch(this, this._errorCallback),
                     onValidation : lang.hitch(this, this._errorCallback)
                 });
@@ -156,6 +156,10 @@ define([
             } else {
                 logger.debug(this.id + "._sendBeacons no beacons found, not sending any");
             }
+        },
+        
+        _mfCallback: function () {
+            console.log(this.id + "._mfCallback called");
         },
         
         _errorCallback: function (error) {
